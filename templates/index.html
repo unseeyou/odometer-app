@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Home Page{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <div class="title">
+            <h1>Odometer Log Book</h1>
+            <h3>Hello, {{ current_user.id }}!</h3>
+        </div>
+    </div>
+
+    <div class="description">
+        <p>insert description here</p>
+    <a href="{{ url_for('logout') }}" class="btn btn-danger">Log Out</a>
+    </div>
+{% endblock %}

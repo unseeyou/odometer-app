@@ -1,0 +1,20 @@
+.topbutton {
+    text-align: center;
+    padding: 1vh;
+    display: none;
+    margin: 2vh auto;
+}
+
+.description {
+    input {
+        background-color: lemonchiffon;
+    }
+    form {
+        padding-left: 20vh;
+    }
+}
+
+.notif {
+    padding-top: 12vh;
+    display: block;
+}

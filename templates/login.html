@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Log In{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <div class="title">
+            <h1>Login Page</h1>
+            <h3>Welcome to the Odometer Logbook!</h3>
+        </div>
+    </div>
+
+    <div class="description">
+    <form method="post">
+  <div class="row mb-3">
+    <label for="inputUser3" class="col-form-label">Username</label>
+    <div class="col-sm-10">
+      <input type="text" class="form-control" id="inputUser3" name="username">
+    </div>
+  </div>
+  <div class="row mb-3">
+    <label for="inputPassword3" class="col-form-label">Password</label>
+    <div class="col-sm-10">
+      <input type="password" class="form-control" id="inputPassword3" name="pw">
+    </div>
+  </div>
+  <div class="row mb-3">
+    <div class="col-sm-10 offset-sm-2">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="gridCheck1" name="remember">
+        <label class="form-check-label" for="gridCheck1">
+          Remember login details for next time
+        </label>
+      </div>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary">Sign In</button>
+</form>
+    <div class="pw_forgot btn btn-secondary">I forgot my password</div>
+    <a href="/signup" class="btn btn-secondary">Create New Account</a>
+    </div>
+{% endblock %}
