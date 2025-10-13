@@ -1,13 +1,22 @@
 import sqlite3
 from sqlite3 import Cursor
-from typing import Any, Generator, Literal, Iterable
+from typing import Any, Generator, Literal, Iterable, AnyStr
 
 import logging
 import bcrypt
 
 from contextlib import contextmanager
+from datetime import datetime
 
 DATABASE = "database/database.db"
+
+
+def datetime_to_str(dt: datetime) -> str:
+    return f"{dt.year}-{dt.month}-{dt.day} {dt.hour}:{dt.minute}:{dt.second}"
+
+
+def str_to_datetime(date_string: AnyStr) -> datetime:
+    return datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S")
 
 
 class DatabaseUnableToMultiThreadError(Exception):
@@ -15,11 +24,12 @@ class DatabaseUnableToMultiThreadError(Exception):
 
 
 class LogEntry:
-    def __init__(self, username: str, start: str, end: str, notes: str) -> None:
+    def __init__(self, username: str, start: str, end: str, notes: str, date: str) -> None:
         self.username = username
         self.start = start
         self.end = end
         self.notes = notes
+        self.datetime = str_to_datetime(date)
 
 
 # noinspection SqlResolve
@@ -113,7 +123,8 @@ class Database:
                 username TEXT NOT NULL,
                 start TEXT NOT NULL,
                 end TEXT NOT NULL,
-                notes TEXT
+                notes TEXT,
+                date TEXT NOT NULL
             )
             """)
 
@@ -170,26 +181,33 @@ class Database:
             )
             return cursor.fetchone() is not False
 
-    def add_log_entry(self, username: str, start: str, end: str, notes: str) -> None:
+    def add_log_entry(self, username: str, start: str, end: str, notes: str, date: datetime) -> None:
         with self.cursor() as cursor:
             cursor.execute(
-                "INSERT INTO log_entries (username, start, end, notes) VALUES (?, ?, ?, ?)",
-                (username, start, end, notes),
+                "INSERT INTO log_entries (username, start, end, notes, date) VALUES (?, ?, ?, ?, ?)",
+                (username, start, end, notes, datetime_to_str(date)),
             )
 
     def fetch_log_entries(
-        self, username: str, sort: Literal["asc", "desc"], amount: int = -1
+        self, username: str, sort: Literal["asc", "desc"], amount: int = -1, skip: int = 0
     ) -> Iterable[LogEntry]:
+        """
+        :param username: username to fetch entries for
+        :param sort: asc = latest, desc = oldest
+        :param amount: amt of entries to fetch, -1 for all
+        :param skip: amt of entries to skip, default 0
+        :return Iterable[LogEntry]:
+        """
         with self.cursor() as cursor:
             cursor.execute(
-                "SELECT start, end, notes FROM log_entries WHERE username = ? ORDER BY start {0}".format(
+                "SELECT start, end, notes, date FROM log_entries WHERE username = ? ORDER BY date {0}".format(
                     sort.upper()
                 ),
                 (username,),
             )
             if amount == -1:
-                for row in cursor.fetchall():
-                    yield LogEntry(username, row[0], row[1], row[2])
+                for row in cursor.fetchall()[skip:]:
+                    yield LogEntry(username, row[0], row[1], row[2], row[3])
             else:
-                for row in cursor.fetchmany(amount):
-                    yield LogEntry(username, row[0], row[1], row[2])
+                for row in cursor.fetchmany(amount + skip)[skip:]:
+                    yield LogEntry(username, row[0], row[1], row[2], row[3])
