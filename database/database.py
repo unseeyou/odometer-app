@@ -24,7 +24,9 @@ class DatabaseUnableToMultiThreadError(Exception):
 
 
 class LogEntry:
-    def __init__(self, username: str, start: str, end: str, notes: str, date: str) -> None:
+    def __init__(
+        self, username: str, start: str, end: str, notes: str, date: str
+    ) -> None:
         self.username = username
         self.start = start
         self.end = end
@@ -181,7 +183,9 @@ class Database:
             )
             return cursor.fetchone() is not False
 
-    def add_log_entry(self, username: str, start: str, end: str, notes: str, date: datetime) -> None:
+    def add_log_entry(
+        self, username: str, start: str, end: str, notes: str, date: datetime
+    ) -> None:
         with self.cursor() as cursor:
             cursor.execute(
                 "INSERT INTO log_entries (username, start, end, notes, date) VALUES (?, ?, ?, ?, ?)",
@@ -189,7 +193,11 @@ class Database:
             )
 
     def fetch_log_entries(
-        self, username: str, sort: Literal["asc", "desc"], amount: int = -1, skip: int = 0
+        self,
+        username: str,
+        sort: Literal["asc", "desc"],
+        amount: int = -1,
+        skip: int = 0,
     ) -> Iterable[LogEntry]:
         """
         :param username: username to fetch entries for
@@ -200,7 +208,7 @@ class Database:
         """
         with self.cursor() as cursor:
             cursor.execute(
-                "SELECT start, end, notes, date FROM log_entries WHERE username = ? ORDER BY date {0}".format(
+                "SELECT start, end, notes, date FROM log_entries WHERE username = ? ORDER BY datetime(date) {0}".format(
                     sort.upper()
                 ),
                 (username,),
