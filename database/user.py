@@ -1,6 +1,8 @@
 import flask_login
 from constants import CustomApp, manager, app
 
+from datetime import datetime
+
 
 class User(flask_login.UserMixin):
     def __init__(self, username: str, password: str, app: CustomApp) -> None:
@@ -10,10 +12,17 @@ class User(flask_login.UserMixin):
         self.__app = app
         self.__entries = []
 
-    def add_log_entry(self, start: str, end: str, notes: str | None):
+    def add_log_entry(self, start: str, end: str, notes: str | None, date: datetime):
         if notes is None:
             notes = ""
-        self.__app.database.add_log_entry(self.id, start, end, notes)
+        self.__app.database.add_log_entry(self.id, start, end, notes, date)
+
+    def get_log_display(self, page: int = 1):
+        return self.__app.database.fetch_log_entries(self.id, "asc", 10, (page - 1) * 10)
+
+    def get_complete_logs(self):
+        return self.__app.database.fetch_log_entries(self.id, "asc")
+
 
     def get_id(self) -> str:
         return self.id

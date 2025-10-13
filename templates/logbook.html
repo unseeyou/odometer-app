@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Home Page{% endblock %}
+{% block title %}Logbook{% endblock %}
 
 {% block content %}
     <div class="toolbar">
@@ -11,6 +11,26 @@
 
     <div class="description">
         <p>insert table and log entry stuff here</p>
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Start</th>
+                <th scope="col">End</th>
+                <th scope="col">Notes</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for log in logs %}
+            <tr>
+                <th scope="row">{{ log[0] }}</th>
+                <td>{{ log[1] }}</td>
+                <td>{{ log[2] }}</td>
+                <td>{{ log[3] }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
         <a href="{{ url_for('index') }}" class="btn btn-primary">Go to Home Page</a>
     </div>
 {% endblock %}

@@ -201,7 +201,7 @@ class Database:
     ) -> Iterable[LogEntry]:
         """
         :param username: username to fetch entries for
-        :param sort: asc = latest, desc = oldest
+        :param sort: asc = latest first, desc = oldest first
         :param amount: amt of entries to fetch, -1 for all
         :param skip: amt of entries to skip, default 0
         :return Iterable[LogEntry]:

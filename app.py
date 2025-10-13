@@ -7,6 +7,10 @@ from flask_login import login_user
 import flask_login
 from urllib.parse import urlparse, urljoin
 
+from logbook.logbook import logbook
+
+app.register_blueprint(logbook)
+
 # csrf = CSRFProtect(app)
 
 
