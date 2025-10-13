@@ -10,8 +10,8 @@ class Settings(BaseSettings):
     secret_key: str
 
 
- # noinspection PyArgumentList
- # settings will fill automatically - unseeyou
+# noinspection PyArgumentList
+# settings will fill automatically - unseeyou
 class CustomApp(Flask):
     def __init__(self, *args, **kwargs):
         super(CustomApp, self).__init__(*args, **kwargs)

@@ -1,6 +1,6 @@
 import sqlite3
 from sqlite3 import Cursor
-from typing import Any, Generator
+from typing import Any, Generator, Literal, Iterable
 
 import logging
 import bcrypt
@@ -8,6 +8,19 @@ import bcrypt
 from contextlib import contextmanager
 
 DATABASE = "database/database.db"
+
+
+class DatabaseUnableToMultiThreadError(Exception):
+    pass
+
+
+class LogEntry:
+    def __init__(self, username: str, start: str, end: str, notes: str) -> None:
+        self.username = username
+        self.start = start
+        self.end = end
+        self.notes = notes
+
 
 # noinspection SqlResolve
 class Database:
@@ -94,20 +107,33 @@ class Database:
                 security_ans TEXT NOT NULL
             )
             """)
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS log_entries (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                start TEXT NOT NULL,
+                end TEXT NOT NULL,
+                notes TEXT
+            )
+            """)
 
     def reset(self) -> None:
         logging.debug("resetting db")
         with self.cursor() as cursor:
             cursor.execute("DROP TABLE IF EXISTS users")
 
-    def register_user(self, username: str, password: str, security_q: str, security_ans: str) -> None:
+    def register_user(
+        self, username: str, password: str, security_q: str, security_ans: str
+    ) -> None:
         logging.debug("Registering User to DB")
         # hash + salt password
         enc_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
 
         with self.cursor() as cursor:
-            cursor.execute("INSERT INTO users (username, password, security_q, security_ans) VALUES (?, ?, ?, ?)",
-                           (username, enc_password, security_q, security_ans))
+            cursor.execute(
+                "INSERT INTO users (username, password, security_q, security_ans) VALUES (?, ?, ?, ?)",
+                (username, enc_password, security_q, security_ans),
+            )
 
     def check_user_pw(self, username: str, password: str):
         with self.cursor() as cursor:
@@ -125,15 +151,45 @@ class Database:
 
     def get_security_question(self, username: str) -> str:
         with self.cursor() as cursor:
-            cursor.execute("SELECT security_q FROM users WHERE username = ?", (username,))
+            cursor.execute(
+                "SELECT security_q FROM users WHERE username = ?", (username,)
+            )
             return cursor.fetchone()[0]
 
     def get_security_answer(self, username: str) -> str:
         with self.cursor() as cursor:
-            cursor.execute("SELECT security_ans FROM users WHERE username = ?", (username,))
+            cursor.execute(
+                "SELECT security_ans FROM users WHERE username = ?", (username,)
+            )
             return cursor.fetchone()[0]
 
     def check_user_active_status(self, username: str):
         with self.cursor() as cursor:
-            cursor.execute("SELECT is_active FROM users WHERE username = ?", (username,))
+            cursor.execute(
+                "SELECT is_active FROM users WHERE username = ?", (username,)
+            )
             return cursor.fetchone() is not False
+
+    def add_log_entry(self, username: str, start: str, end: str, notes: str) -> None:
+        with self.cursor() as cursor:
+            cursor.execute(
+                "INSERT INTO log_entries (username, start, end, notes) VALUES (?, ?, ?, ?)",
+                (username, start, end, notes),
+            )
+
+    def fetch_log_entries(
+        self, username: str, sort: Literal["asc", "desc"], amount: int = -1
+    ) -> Iterable[LogEntry]:
+        with self.cursor() as cursor:
+            cursor.execute(
+                "SELECT start, end, notes FROM log_entries WHERE username = ? ORDER BY start {0}".format(
+                    sort.upper()
+                ),
+                (username,),
+            )
+            if amount == -1:
+                for row in cursor.fetchall():
+                    yield LogEntry(username, row[0], row[1], row[2])
+            else:
+                for row in cursor.fetchmany(amount):
+                    yield LogEntry(username, row[0], row[1], row[2])

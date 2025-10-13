@@ -1,6 +1,5 @@
 from constants import app, manager
 from database.user import User
-from flask_wtf.csrf import CSRFProtect
 
 from flask import request
 import flask
@@ -14,12 +13,10 @@ from urllib.parse import urlparse, urljoin
 def url_has_allowed_host_and_scheme(target):
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
-    return (
-        test_url.scheme in ("http", "https") and ref_url.netloc == test_url.netloc
-    )
+    return test_url.scheme in ("http", "https") and ref_url.netloc == test_url.netloc
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         app.logger.debug("Submission received")
@@ -43,20 +40,20 @@ def login():
             return flask.redirect(flask.url_for("login"))
 
         user = User(username, password, app)
-        login_user(user)
+        login_user(user, remember=remember_login)
 
-        flask.flash('Logged in successfully.')
+        flask.flash("Logged in successfully.")
 
-        next = request.args.get('next')
+        next = request.args.get("next")
 
         if not url_has_allowed_host_and_scheme(next):
             return flask.abort(400)
 
-        return flask.redirect(next or flask.url_for('index'))
+        return flask.redirect(next or flask.url_for("index"))
     return flask.render_template("login.html")
 
 
-@app.route('/signup', methods=['GET', 'POST'])
+@app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
         app.logger.debug("Submission received")

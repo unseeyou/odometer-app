@@ -8,6 +8,12 @@ class User(flask_login.UserMixin):
         self.password = password
         self.__active = app.database.check_user_active_status(self.id)
         self.__app = app
+        self.__entries = []
+
+    def add_log_entry(self, start: str, end: str, notes: str | None):
+        if notes is None:
+            notes = ""
+        self.__app.database.add_log_entry(self.id, start, end, notes)
 
     def get_id(self) -> str:
         return self.id
@@ -25,7 +31,9 @@ class User(flask_login.UserMixin):
         return False
 
     @property
-    def is_active(self) -> bool:  # I guess there could be a ban system using this? can set a flag in db
+    def is_active(
+        self,
+    ) -> bool:  # I guess there could be a ban system using this? can set a flag in db
         return self.__active
 
     def save_to_db(self, sec_q: str, sec_ans: str) -> None:
