@@ -25,13 +25,14 @@ class DatabaseUnableToMultiThreadError(Exception):
 
 class LogEntry:
     def __init__(
-        self, username: str, start: str, end: str, notes: str, date: str
+        self, username: str, start: str, end: str, notes: str, date: str, duration: int
     ) -> None:
         self.username = username
         self.start = start
         self.end = end
         self.notes = notes
         self.datetime = str_to_datetime(date)
+        self.duration = duration  # time in seconds
 
 
 # noinspection SqlResolve
@@ -126,7 +127,8 @@ class Database:
                 start TEXT NOT NULL,
                 end TEXT NOT NULL,
                 notes TEXT,
-                date TEXT NOT NULL
+                date TEXT NOT NULL,
+                duration INTEGER NOT NULL
             )
             """)
 
@@ -184,12 +186,12 @@ class Database:
             return cursor.fetchone() is not False
 
     def add_log_entry(
-        self, username: str, start: str, end: str, notes: str, date: datetime
+        self, username: str, start: str, end: str, notes: str, date: datetime, duration: int
     ) -> None:
         with self.cursor() as cursor:
             cursor.execute(
-                "INSERT INTO log_entries (username, start, end, notes, date) VALUES (?, ?, ?, ?, ?)",
-                (username, start, end, notes, datetime_to_str(date)),
+                "INSERT INTO log_entries (username, start, end, notes, date, duration) VALUES (?, ?, ?, ?, ?, ?)",
+                (username, start, end, notes, datetime_to_str(date), duration),
             )
 
     def fetch_log_entries(
@@ -208,14 +210,14 @@ class Database:
         """
         with self.cursor() as cursor:
             cursor.execute(
-                "SELECT start, end, notes, date FROM log_entries WHERE username = ? ORDER BY datetime(date) {0}".format(
+                "SELECT start, end, notes, date, duration FROM log_entries WHERE username = ? ORDER BY datetime(date) {0}".format(
                     sort.upper()
                 ),
                 (username,),
             )
             if amount == -1:
                 for row in cursor.fetchall()[skip:]:
-                    yield LogEntry(username, row[0], row[1], row[2], row[3])
+                    yield LogEntry(username, row[0], row[1], row[2], row[3], row[4])
             else:
                 for row in cursor.fetchmany(amount + skip)[skip:]:
-                    yield LogEntry(username, row[0], row[1], row[2], row[3])
+                    yield LogEntry(username, row[0], row[1], row[2], row[3], row[4])

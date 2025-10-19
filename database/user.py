@@ -12,17 +12,16 @@ class User(flask_login.UserMixin):
         self.__app = app
         self.__entries = []
 
-    def add_log_entry(self, start: str, end: str, notes: str | None, date: datetime):
+    def add_log_entry(self, start: str, end: str, notes: str | None, date: datetime, duration: int):
         if notes is None:
             notes = ""
-        self.__app.database.add_log_entry(self.id, start, end, notes, date)
+        self.__app.database.add_log_entry(self.id, start, end, notes, date, duration)
 
     def get_log_display(self, page: int = 1):
         return self.__app.database.fetch_log_entries(self.id, "asc", 10, (page - 1) * 10)
 
     def get_complete_logs(self):
         return self.__app.database.fetch_log_entries(self.id, "asc")
-
 
     def get_id(self) -> str:
         return self.id
