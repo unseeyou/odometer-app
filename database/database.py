@@ -186,7 +186,13 @@ class Database:
             return cursor.fetchone() is not False
 
     def add_log_entry(
-        self, username: str, start: str, end: str, notes: str, date: datetime, duration: int
+        self,
+        username: str,
+        start: str,
+        end: str,
+        notes: str,
+        date: datetime,
+        duration: int,
     ) -> None:
         with self.cursor() as cursor:
             cursor.execute(

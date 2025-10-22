@@ -1,6 +1,6 @@
 from flask import Blueprint, request, render_template, session
 from database.user import User
-from datetime import datetime, timedelta
+from datetime import datetime
 import flask_login
 import pytz
 
