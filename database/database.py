@@ -23,9 +23,20 @@ class DatabaseUnableToMultiThreadError(Exception):
     pass
 
 
+class UsernameAlreadyTakenError(Exception):
+    pass
+
+
 class LogEntry:
     def __init__(
-        self, username: str, start: str, end: str, notes: str, date: str, duration: int
+        self,
+        username: str,
+        start: str,
+        end: str,
+        notes: str,
+        date: str,
+        duration: int,
+        car: str,
     ) -> None:
         self.username = username
         self.start = start
@@ -33,6 +44,7 @@ class LogEntry:
         self.notes = notes
         self.datetime = str_to_datetime(date)
         self.duration = duration  # time in seconds
+        self.car = car
 
 
 # noinspection SqlResolve
@@ -128,7 +140,16 @@ class Database:
                 end TEXT NOT NULL,
                 notes TEXT,
                 date TEXT NOT NULL,
-                duration INTEGER NOT NULL
+                duration INTEGER NOT NULL,
+                car_name TEXT NOT NULL
+            )
+            """)
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_car_profiles (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                car_name TEXT NOT NULL,
+                car_notes TEXT
             )
             """)
 
@@ -145,10 +166,13 @@ class Database:
         enc_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
 
         with self.cursor() as cursor:
-            cursor.execute(
-                "INSERT INTO users (username, password, security_q, security_ans) VALUES (?, ?, ?, ?)",
-                (username, enc_password, security_q, security_ans),
-            )
+            try:
+                cursor.execute(
+                    "INSERT INTO users (username, password, security_q, security_ans) VALUES (?, ?, ?, ?)",
+                    (username, enc_password, security_q, security_ans),
+                )
+            except sqlite3.OperationalError:
+                raise UsernameAlreadyTakenError
 
     def check_user_pw(self, username: str, password: str):
         with self.cursor() as cursor:
@@ -193,11 +217,12 @@ class Database:
         notes: str,
         date: datetime,
         duration: int,
+        car: str,
     ) -> None:
         with self.cursor() as cursor:
             cursor.execute(
-                "INSERT INTO log_entries (username, start, end, notes, date, duration) VALUES (?, ?, ?, ?, ?, ?)",
-                (username, start, end, notes, datetime_to_str(date), duration),
+                "INSERT INTO log_entries (username, start, end, notes, date, duration, car_name) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (username, start, end, notes, datetime_to_str(date), duration, car),
             )
 
     def fetch_log_entries(
@@ -216,14 +241,27 @@ class Database:
         """
         with self.cursor() as cursor:
             cursor.execute(
-                "SELECT start, end, notes, date, duration FROM log_entries WHERE username = ? ORDER BY datetime(date) {0}".format(
+                "SELECT start, end, notes, date, duration, car_name FROM log_entries WHERE username = ? ORDER BY datetime(date) {0}".format(
                     sort.upper()
                 ),
                 (username,),
             )
             if amount == -1:
                 for row in cursor.fetchall()[skip:]:
-                    yield LogEntry(username, row[0], row[1], row[2], row[3], row[4])
+                    yield LogEntry(
+                        username, row[0], row[1], row[2], row[3], row[4], row[5]
+                    )
             else:
                 for row in cursor.fetchmany(amount + skip)[skip:]:
-                    yield LogEntry(username, row[0], row[1], row[2], row[3], row[4])
+                    yield LogEntry(
+                        username, row[0], row[1], row[2], row[3], row[4], row[5]
+                    )
+
+    def add_car(self, username: str, car_name: str, car_notes: str):
+        with self.cursor() as cursor:
+            cursor.execute(
+                """
+            INSERT INTO user_car_profiles (username, car_name, car_notes) VALUES (?, ?, ?)
+            """,
+                (username, car_name, car_notes),
+            )

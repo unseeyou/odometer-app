@@ -9,14 +9,61 @@
         </div>
     </div>
 
-    <div class="description" onload="setTimeZone()">
+    <div class="description">
         <p>insert table and log entry stuff here</p>
+    <h3>Register New Car</h3>
+        <form action="" method="post" class="row row-cols-lg-auto align-items-center">
+            <div class="col-12">
+            <input type="text" class="form-control" placeholder="Car Name" aria-label="CarName" aria-describedby="basic-addon1" name="car_name">
+            </div>
+            <div class="col-12">
+            <input type="text" class="form-control" placeholder="Notes" aria-label="CarNotes" aria-describedby="basic-addon1" name="car_notes">
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    <h3>Add New Log Entry</h3>
+        <form class="row row-cols-lg-auto align-items-center" method="post" action="">
+          <div class="col-12">
+            <label class="visually-hidden" for="inlineFormInputGroupStart">Start</label>
+            <div class="input-group">
+              <div class="input-group-text">Start</div>
+              <input type="number" class="form-control" id="inlineFormInputGroupStart" placeholder="0" inputmode="numeric" pattern="[0-9]*" name="start">
+            </div>
+          </div>
+
+            <div class="col-12">
+            <label class="visually-hidden" for="inlineFormInputGroupEnd">End</label>
+            <div class="input-group">
+              <div class="input-group-text">End</div>
+              <input type="number" class="form-control" id="inlineFormInputGroupEnd" placeholder="0" inputmode="numeric" pattern="[0-9]*" name="end">
+            </div>
+          </div>
+
+          <div class="col-12">
+            <label class="visually-hidden" for="inlineFormSelectPref">Preference</label>
+            <select class="form-select" id="inlineFormSelectPref" name="car" required>
+              <option selected disabled>Choose Car...</option>
+                {% for car in user_cars %}
+                <option value="{{ car }}">{{ car }}</option>
+                {% endfor %}
+            </select>
+          </div>
+
+        <div class="col-12">
+            <input type="text" class="form-control" placeholder="Notes" aria-label="OdoNotes" aria-describedby="basic-addon1" name="notes">
+            </div>
+
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </form>
         <table class="table">
             <thead>
             <tr>
                 <th scope="col">Date</th>
                 <th scope="col">Start</th>
                 <th scope="col">End</th>
+                <th scope="col">Car</th>
                 <th scope="col">Notes</th>
             </tr>
             </thead>
@@ -26,6 +73,7 @@
                 <th scope="row">{{ log[0] }}</th>
                 <td>{{ log[1] }}</td>
                 <td>{{ log[2] }}</td>
+                <td>{{ log[4] }}</td>
                 <td>{{ log[3] }}</td>
             </tr>
             {% endfor %}

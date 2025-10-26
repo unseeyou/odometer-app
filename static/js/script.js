@@ -8,3 +8,5 @@ function setTimeZone() {
         body: JSON.stringify({ timezone: userTimeZone }),
     });
 }
+
+setTimeZone();

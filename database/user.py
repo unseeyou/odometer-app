@@ -13,11 +13,19 @@ class User(flask_login.UserMixin):
         self.__entries = []
 
     def add_log_entry(
-        self, start: str, end: str, notes: str | None, date: datetime, duration: int
+        self,
+        start: str,
+        end: str,
+        notes: str | None,
+        date: datetime,
+        duration: int,
+        car: str,
     ):
         if notes is None:
             notes = ""
-        self.__app.database.add_log_entry(self.id, start, end, notes, date, duration)
+        self.__app.database.add_log_entry(
+            self.id, start, end, notes, date, duration, car
+        )
 
     def get_log_display(self, page: int = 1):
         return self.__app.database.fetch_log_entries(
@@ -29,6 +37,16 @@ class User(flask_login.UserMixin):
 
     def get_id(self) -> str:
         return self.id
+
+    def add_car(self, car_name: str, car_notes: str) -> None:
+        self.__app.database.add_car(self.id, car_name, car_notes)
+
+    def get_cars(self):
+        with self.__app.database.cursor() as cursor:
+            cursor.execute(
+                "SELECT car_name FROM user_car_profiles WHERE username = ?", (self.id,)
+            )
+            return [i[0] for i in cursor.fetchall()]
 
     @property
     def is_authenticated(self) -> bool:
